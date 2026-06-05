@@ -5,14 +5,15 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.database import Base
-import app.models  # noqa: F401 — register all models
+from app.db_url import get_database_url
+import app.models  # noqa: F401
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-db_url = os.getenv("DATABASE_URL", config.get_main_option("sqlalchemy.url"))
+db_url = get_database_url()
 config.set_main_option("sqlalchemy.url", db_url)
 
 target_metadata = Base.metadata

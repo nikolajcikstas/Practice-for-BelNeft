@@ -7,12 +7,13 @@ RUN npm install
 COPY frontend/ .
 RUN npm run build
 
-# Stage 2: runtime (Python + nginx + supervisor)
+# Stage 2: runtime
 FROM python:3.12-slim
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends nginx supervisor \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -f /etc/nginx/sites-enabled/default
 
 WORKDIR /app
 
@@ -23,11 +24,12 @@ COPY backend/ .
 
 COPY --from=frontend /frontend/dist /var/www/html
 
-COPY hf/nginx.conf /etc/nginx/sites-available/default
+COPY hf/nginx.conf /etc/nginx/conf.d/default.conf
 COPY hf/supervisord_simple.conf /etc/supervisor/conf.d/app.conf
 COPY hf/start.sh /start.sh
 RUN chmod +x /start.sh
 
+ENV PORT=7860
 EXPOSE 7860
 
 CMD ["/start.sh"]
