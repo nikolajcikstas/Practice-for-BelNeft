@@ -19,7 +19,7 @@ import {
 import client from "../api/client";
 import type { Employee, Skill } from "../api/types";
 import EmployeeAvatar from "../components/EmployeeAvatar";
-import { formatFullName } from "../utils/name";
+import { formatFullName, formatPosition } from "../utils/name";
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
@@ -68,8 +68,8 @@ export default function EmployeesPage() {
 
   const handleSave = async () => {
     const values = await form.validateFields();
-    if (!values.middle_name?.trim()) {
-      values.middle_name = null;
+    if (!values.position?.trim()) {
+      values.position = null;
     }
     if (editTarget) {
       await client.patch(`/employees/${editTarget.id}`, values);
@@ -120,7 +120,10 @@ export default function EmployeesPage() {
         </Space>
       ),
     },
-    { title: "Должность", dataIndex: "position" },
+    {
+      title: "Должность",
+      render: (_: unknown, emp: Employee) => formatPosition(emp.position),
+    },
     {
       title: "Навыки",
       render: (_: unknown, emp: Employee) =>
@@ -178,11 +181,11 @@ export default function EmployeesPage() {
           <Form.Item name="first_name" label="Имя" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="middle_name" label="Отчество">
-            <Input placeholder="Необязательно" />
+          <Form.Item name="middle_name" label="Отчество" rules={[{ required: true, message: "Укажите отчество" }]}>
+            <Input />
           </Form.Item>
-          <Form.Item name="position" label="Должность" rules={[{ required: true, message: "Укажите должность" }]}>
-            <Input placeholder="Например: Разработчик" />
+          <Form.Item name="position" label="Должность">
+            <Input placeholder="Необязательно" />
           </Form.Item>
           <Form.Item name="photo_url" label="URL фото">
             <Input placeholder="https://..." />

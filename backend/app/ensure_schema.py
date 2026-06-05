@@ -16,10 +16,27 @@ def _apply_schema() -> None:
         Base.metadata.create_all(bind=engine)
         return
 
-    columns = {col["name"] for col in inspector.get_columns("employees")}
-    if "middle_name" not in columns:
-        with engine.begin() as conn:
+    col_info = {c["name"]: c for c in inspector.get_columns("employees")}
+
+    with engine.begin() as conn:
+        if "middle_name" not in columns:
             conn.execute(text("ALTER TABLE employees ADD COLUMN middle_name VARCHAR(100)"))
+
+        conn.execute(text("""
+            UPDATE employees
+            SET middle_name = position, position = NULL
+            WHERE (middle_name IS NULL OR TRIM(middle_name) = '')
+              AND position IS NOT NULL AND TRIM(position) != ''
+        """))
+        conn.execute(text("""
+            UPDATE employees SET middle_name = '—'
+            WHERE middle_name IS NULL OR TRIM(middle_name) = ''
+        """))
+
+        if col_info.get("middle_name", {}).get("nullable", True):
+            conn.execute(text("ALTER TABLE employees ALTER COLUMN middle_name SET NOT NULL"))
+        if col_info.get("position") and not col_info["position"].get("nullable", True):
+            conn.execute(text("ALTER TABLE employees ALTER COLUMN position DROP NOT NULL"))
 
 
 def _sync_alembic() -> None:

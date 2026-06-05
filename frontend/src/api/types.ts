@@ -10,8 +10,8 @@ export interface Employee {
   id: number;
   last_name: string;
   first_name: string;
-  middle_name: string | null;
-  position: string;
+  middle_name: string;
+  position: string | null;
   photo_url: string | null;
   date_added: string;
   skills: SkillShort[];

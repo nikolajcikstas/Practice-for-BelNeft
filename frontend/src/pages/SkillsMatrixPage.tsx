@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import client from "../api/client";
 import type { Employee, Skill } from "../api/types";
 import EmployeeAvatar from "../components/EmployeeAvatar";
-import { formatFullName } from "../utils/name";
+import { formatFullName, formatPosition } from "../utils/name";
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
@@ -82,7 +82,7 @@ export default function SkillsMatrixPage() {
           <span className="employee-cell-name">
             {formatFullName(emp)}
             <br />
-            <small style={{ color: "#888" }}>{emp.position}</small>
+            <small style={{ color: "#888" }}>{formatPosition(emp.position)}</small>
           </span>
         </Space>
       ),

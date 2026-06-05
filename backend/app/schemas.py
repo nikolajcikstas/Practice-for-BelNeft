@@ -8,9 +8,16 @@ from pydantic import BaseModel, Field, field_validator
 class EmployeeBase(BaseModel):
     last_name: str = Field(..., min_length=1, max_length=100)
     first_name: str = Field(..., min_length=1, max_length=100)
-    middle_name: str | None = Field(None, max_length=100)
-    position: str = Field(..., min_length=1, max_length=200)
+    middle_name: str = Field(..., min_length=1, max_length=100)
+    position: str | None = Field(None, max_length=200)
     photo_url: str | None = None
+
+    @field_validator("position", mode="before")
+    @classmethod
+    def empty_position_to_none(cls, value):
+        if value is not None and not str(value).strip():
+            return None
+        return value
 
 
 class EmployeeCreate(EmployeeBase):
@@ -20,8 +27,8 @@ class EmployeeCreate(EmployeeBase):
 class EmployeeUpdate(BaseModel):
     last_name: str | None = Field(None, min_length=1, max_length=100)
     first_name: str | None = Field(None, min_length=1, max_length=100)
-    middle_name: str | None = Field(None, max_length=100)
-    position: str | None = Field(None, min_length=1, max_length=200)
+    middle_name: str | None = Field(None, min_length=1, max_length=100)
+    position: str | None = Field(None, max_length=200)
     photo_url: str | None = None
 
 
