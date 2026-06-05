@@ -1,4 +1,11 @@
-
+---
+title: Portal Kompetencij
+emoji: 🏢
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
 
 # Портал управления компетенциями и расписанием
 
