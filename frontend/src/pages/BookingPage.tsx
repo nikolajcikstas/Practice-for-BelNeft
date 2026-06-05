@@ -1,28 +1,14 @@
 import { Alert, Button, DatePicker, Form, Input, Modal, Spin, Typography, message } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ru";
-import updateLocale from "dayjs/plugin/updateLocale";
 import { useEffect, useState } from "react";
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import client from "../api/client";
 import type { Booking } from "../api/types";
 
-const WEEKDAYS_SHORT = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
-
-dayjs.extend(updateLocale);
-dayjs.updateLocale("ru", {
-  weekdaysShort: WEEKDAYS_SHORT,
-  weekdaysMin: WEEKDAYS_SHORT,
-});
 dayjs.locale("ru");
 const localizer = dayjsLocalizer(dayjs);
-
-const calendarFormats = {
-  weekdayFormat: (date: Date) => WEEKDAYS_SHORT[dayjs(date).day()],
-  dayHeaderFormat: (date: Date) =>
-    `${WEEKDAYS_SHORT[dayjs(date).day()]} ${dayjs(date).format("DD.MM")}`,
-};
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
@@ -123,7 +109,6 @@ export default function BookingPage() {
 
       <Calendar
         localizer={localizer}
-        formats={calendarFormats}
         events={events}
         defaultView="day"
         views={["month", "week", "day"]}

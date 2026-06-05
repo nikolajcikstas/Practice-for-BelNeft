@@ -43,6 +43,18 @@ def _build_skill_short(es: EmployeeSkill) -> SkillShort:
     )
 
 
+def _build_employee_out(emp: Employee) -> EmployeeOut:
+    return EmployeeOut(
+        id=emp.id,
+        last_name=emp.last_name,
+        first_name=emp.first_name,
+        position=emp.position,
+        photo_url=emp.photo_url,
+        date_added=emp.date_added,
+        skills=[_build_skill_short(es) for es in emp.skills],
+    )
+
+
 @router.get("", response_model=EmployeeList)
 def list_employees(
     page: int = Query(1, ge=1),
@@ -57,11 +69,7 @@ def list_employees(
         .limit(size)
         .all()
     )
-    items = []
-    for emp in employees:
-        out = EmployeeOut.model_validate(emp)
-        out.skills = [_build_skill_short(es) for es in emp.skills]
-        items.append(out)
+    items = [_build_employee_out(emp) for emp in employees]
     return EmployeeList(items=items, total=total, page=page, size=size)
 
 
@@ -81,15 +89,13 @@ def create_employee(
             status_code=409,
             detail="Employee with this last name and first name already exists",
         )
-    return _load_employee(db, emp.id)
+    db.refresh(emp)
+    return _build_employee_out(_load_employee(db, emp.id))
 
 
 @router.get("/{emp_id}", response_model=EmployeeOut)
 def get_employee(emp_id: int, db: Session = Depends(get_db)):
-    emp = _load_employee(db, emp_id)
-    out = EmployeeOut.model_validate(emp)
-    out.skills = [_build_skill_short(es) for es in emp.skills]
-    return out
+    return _build_employee_out(_load_employee(db, emp_id))
 
 
 @router.patch("/{emp_id}", response_model=EmployeeOut)
