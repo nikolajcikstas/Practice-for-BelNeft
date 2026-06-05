@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import {
   Alert,
   Button,
   Drawer,
   Form,
+  Grid,
   Input,
   Modal,
   Select,
@@ -14,14 +16,16 @@ import {
   Typography,
   message,
 } from "antd";
-import { useEffect, useState } from "react";
 import client from "../api/client";
 import type { Employee, Skill } from "../api/types";
 import EmployeeAvatar from "../components/EmployeeAvatar";
 
 const { Title } = Typography;
+const { useBreakpoint } = Grid;
 
 export default function EmployeesPage() {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,33 +128,43 @@ export default function EmployeesPage() {
     },
     {
       title: "Действия",
+      width: isMobile ? 120 : undefined,
       render: (_: unknown, emp: Employee) => (
-        <Space>
-          <Button size="small" onClick={() => openEdit(emp)}>Редактировать</Button>
+        <Space direction={isMobile ? "vertical" : "horizontal"} size={4}>
+          <Button size="small" onClick={() => openEdit(emp)}>Изм.</Button>
           <Button size="small" onClick={() => openSkillModal(emp)}>+ Навык</Button>
-          <Button size="small" danger onClick={() => handleDelete(emp)}>Удалить</Button>
+          <Button size="small" danger onClick={() => handleDelete(emp)}>Удал.</Button>
         </Space>
       ),
     },
   ];
 
-  if (loading) return <Spin size="large" style={{ marginTop: 80, display: "block", textAlign: "center" }} />;
+  if (loading) return <Spin size="large" className="page-spinner" />;
   if (error) return <Alert type="error" message={error} />;
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-        <Title level={3} style={{ margin: 0 }}>Сотрудники</Title>
+      <div className="page-header">
+        <Title level={3}>Сотрудники</Title>
         <Button type="primary" onClick={openCreate}>+ Добавить</Button>
       </div>
 
-      <Table dataSource={employees} columns={columns} rowKey="id" bordered size="middle" />
+      <div className="page-table-wrap">
+        <Table
+          dataSource={employees}
+          columns={columns}
+          rowKey="id"
+          bordered
+          size={isMobile ? "small" : "middle"}
+          scroll={{ x: isMobile ? 640 : undefined }}
+        />
+      </div>
 
       <Drawer
         title={editTarget ? "Редактировать сотрудника" : "Новый сотрудник"}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        width={420}
+        width={isMobile ? "100%" : 420}
         extra={<Button type="primary" onClick={handleSave}>Сохранить</Button>}
       >
         <Form form={form} layout="vertical">
@@ -175,6 +189,8 @@ export default function EmployeesPage() {
         onCancel={() => setSkillModalOpen(false)}
         onOk={handleAssignSkill}
         okText="Назначить"
+        width={isMobile ? "100%" : 520}
+        style={isMobile ? { top: 20, maxWidth: "calc(100vw - 16px)" } : undefined}
       >
         <Form form={skillForm} layout="vertical">
           <Form.Item name="skill_id" label="Навык" rules={[{ required: true }]}>

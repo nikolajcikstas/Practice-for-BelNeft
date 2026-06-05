@@ -2,6 +2,7 @@ import {
   Alert,
   Button,
   Form,
+  Grid,
   Input,
   Modal,
   Select,
@@ -16,6 +17,7 @@ import client from "../api/client";
 import type { Skill } from "../api/types";
 
 const { Title } = Typography;
+const { useBreakpoint } = Grid;
 
 const CATEGORIES = [
   "Язык программирования",
@@ -26,6 +28,8 @@ const CATEGORIES = [
 ];
 
 export default function SkillsPage() {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +100,7 @@ export default function SkillsPage() {
     },
     {
       title: "Действие",
+      width: isMobile ? 90 : undefined,
       render: (_: unknown, skill: Skill) => (
         <Button size="small" danger onClick={() => handleDelete(skill)}>
           Удалить
@@ -104,28 +109,29 @@ export default function SkillsPage() {
     },
   ];
 
-  if (loading) return <Spin size="large" style={{ marginTop: 80, display: "block", textAlign: "center" }} />;
+  if (loading) return <Spin size="large" className="page-spinner" />;
   if (error) return <Alert type="error" message={error} />;
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-        <Title level={3} style={{ margin: 0 }}>
-          Справочник навыков
-        </Title>
+      <div className="page-header">
+        <Title level={3}>Справочник навыков</Title>
         <Button type="primary" onClick={() => { form.resetFields(); setModalOpen(true); }}>
-          + Добавить навык
+          + Добавить
         </Button>
       </div>
 
-      <Table
-        dataSource={skills}
-        columns={columns}
-        rowKey="id"
-        bordered
-        size="middle"
-        pagination={{ pageSize: 20 }}
-      />
+      <div className="page-table-wrap">
+        <Table
+          dataSource={skills}
+          columns={columns}
+          rowKey="id"
+          bordered
+          size={isMobile ? "small" : "middle"}
+          scroll={{ x: isMobile ? 480 : undefined }}
+          pagination={{ pageSize: 20 }}
+        />
+      </div>
 
       <Modal
         title="Новый навык"
@@ -133,6 +139,8 @@ export default function SkillsPage() {
         onCancel={() => setModalOpen(false)}
         onOk={handleCreate}
         okText="Добавить"
+        width={isMobile ? "100%" : 520}
+        style={isMobile ? { top: 20, maxWidth: "calc(100vw - 16px)" } : undefined}
       >
         <Form form={form} layout="vertical">
           <Form.Item

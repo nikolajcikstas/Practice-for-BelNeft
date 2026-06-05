@@ -7,15 +7,108 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #f5f5f5;
+  overflow-x: hidden;
+}
+
+.app-layout {
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: 16px !important;
+  line-height: 1.2 !important;
+}
+
+.app-title {
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.app-menu-btn {
+  color: #fff !important;
+  font-size: 18px;
+}
+
+.app-sider {
+  background: #fff !important;
+}
+
+.app-sider .ant-menu {
+  height: 100%;
+  border-inline-end: 0;
+  padding-top: 8px;
+}
+
+.app-content {
+  padding: 24px;
+  min-width: 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.page-header .ant-typography {
+  margin: 0 !important;
+}
+
+.page-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.page-spinner {
+  margin-top: 80px;
+  display: block;
+  text-align: center;
+}
+
+.legend-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
 }
 
 .rbc-calendar {
   height: 600px;
 }
 
+.calendar-wrap .rbc-calendar {
+  height: 600px;
+}
+
 .rbc-header {
   font-weight: 600;
   text-transform: none;
+}
+
+.rbc-toolbar {
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .booking-event {
@@ -32,4 +125,90 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .app-title {
+    font-size: 16px;
+  }
+
+  .app-content {
+    padding: 12px;
+  }
+
+  .page-header {
+    margin-bottom: 12px;
+  }
+
+  .page-header .ant-typography {
+    font-size: 18px !important;
+  }
+
+  .page-header .ant-btn {
+    flex-shrink: 0;
+  }
+
+  .rbc-calendar {
+    height: 480px;
+    font-size: 12px;
+  }
+
+  .calendar-wrap .rbc-calendar {
+    height: 480px;
+  }
+
+  .rbc-toolbar-label {
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+    order: -1;
+  }
+
+  .rbc-header {
+    font-size: 11px;
+    padding: 4px 2px !important;
+  }
+
+  .rbc-time-header-gutter,
+  .rbc-time-gutter {
+    font-size: 11px;
+  }
+
+  .booking-event-title {
+    font-size: 10px;
+  }
+
+  .matrix-skill-header {
+    font-size: 10px !important;
+  }
+
+  .matrix-skill-header .ant-tag {
+    display: none;
+  }
+
+  .employee-cell-name small {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-content {
+    padding: 8px;
+  }
+
+  .rbc-calendar {
+    height: 420px;
+  }
+
+  .calendar-wrap .rbc-calendar {
+    height: 420px;
+  }
+
+  .page-header .ant-typography {
+    font-size: 16px !important;
+  }
+
+  .booking-event .ant-avatar {
+    display: none;
+  }
 }

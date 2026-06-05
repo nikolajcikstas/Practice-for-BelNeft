@@ -1,4 +1,4 @@
-import { Alert, Button, DatePicker, Form, Input, Modal, Spin, Typography, message } from "antd";
+import { Alert, Button, DatePicker, Form, Grid, Input, Modal, Spin, Typography, message } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ru";
 import isoWeek from "dayjs/plugin/isoWeek";
@@ -24,6 +24,7 @@ const localizer = dayjsLocalizer(dayjs);
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
+const { useBreakpoint } = Grid;
 
 interface CalEvent {
   id: number;
@@ -66,6 +67,8 @@ function EventContent({ event }: { event: CalEvent }) {
 }
 
 export default function BookingPage() {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +76,12 @@ export default function BookingPage() {
   const [currentView, setCurrentView] = useState<View>("week");
   const [modalOpen, setModalOpen] = useState(false);
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (isMobile) {
+      setCurrentView("day");
+    }
+  }, [isMobile]);
 
   const loadBookings = useCallback((date: Date, view: View) => {
     setLoading(true);
@@ -162,8 +171,8 @@ export default function BookingPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-        <Title level={3} style={{ margin: 0 }}>Переговорная</Title>
+      <div className="page-header">
+        <Title level={3}>Переговорная</Title>
         <Button type="primary" onClick={() => openCreateModal()}>
           + Забронировать
         </Button>
@@ -172,34 +181,34 @@ export default function BookingPage() {
       {error && <Alert type="error" message={error} style={{ marginBottom: 12 }} />}
       {loading && <Spin style={{ marginBottom: 8 }} />}
 
-      <Calendar
-        localizer={localizer}
-        culture="ru"
-        events={events}
-        defaultView="week"
-        view={currentView}
-        views={["month", "week", "day"]}
-        step={30}
-        timeslots={2}
-        date={currentDate}
-        formats={calendarFormats}
-        onNavigate={(date) => setCurrentDate(date)}
-        onView={(view) => setCurrentView(view)}
-        selectable
-        onSelectSlot={handleSelectSlot}
-        onSelectEvent={handleCancel}
-        components={{ event: EventContent }}
-        messages={{
-          today: "Сегодня",
-          previous: "Назад",
-          next: "Вперёд",
-          month: "Месяц",
-          week: "Неделя",
-          day: "День",
-          noEventsInRange: "Нет бронирований",
-        }}
-        style={{ height: 600 }}
-      />
+      <div className="calendar-wrap">
+        <Calendar
+          localizer={localizer}
+          culture="ru"
+          events={events}
+          view={currentView}
+          views={isMobile ? ["day", "week"] : ["month", "week", "day"]}
+          step={30}
+          timeslots={2}
+          date={currentDate}
+          formats={calendarFormats}
+          onNavigate={(date) => setCurrentDate(date)}
+          onView={(view) => setCurrentView(view)}
+          selectable
+          onSelectSlot={handleSelectSlot}
+          onSelectEvent={handleCancel}
+          components={{ event: EventContent }}
+          messages={{
+            today: "Сегодня",
+            previous: "Назад",
+            next: "Вперёд",
+            month: "Месяц",
+            week: "Неделя",
+            day: "День",
+            noEventsInRange: "Нет бронирований",
+          }}
+        />
+      </div>
 
       <Modal
         title="Забронировать переговорную"
@@ -207,13 +216,20 @@ export default function BookingPage() {
         onCancel={() => setModalOpen(false)}
         onOk={handleCreate}
         okText="Забронировать"
+        width={isMobile ? "100%" : 520}
+        style={isMobile ? { top: 20, maxWidth: "calc(100vw - 16px)" } : undefined}
       >
         <Form form={form} layout="vertical">
           <Form.Item name="topic" label="Тема встречи" rules={[{ required: true, message: "Укажите тему" }]}>
             <Input />
           </Form.Item>
           <Form.Item name="range" label="Начало и конец" rules={[{ required: true, message: "Выберите время" }]}>
-            <RangePicker showTime format="DD.MM.YYYY HH:mm" style={{ width: "100%" }} />
+            <RangePicker
+              showTime
+              format="DD.MM.YYYY HH:mm"
+              style={{ width: "100%" }}
+              placement={isMobile ? "bottomLeft" : undefined}
+            />
           </Form.Item>
         </Form>
       </Modal>

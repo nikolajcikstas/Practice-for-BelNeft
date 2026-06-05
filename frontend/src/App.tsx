@@ -1,4 +1,5 @@
-import { Layout, Menu } from "antd";
+import { MenuOutlined } from "@ant-design/icons";
+import { Button, Drawer, Grid, Layout, Menu } from "antd";
 import { useState } from "react";
 import BookingPage from "./pages/BookingPage";
 import EmployeesPage from "./pages/EmployeesPage";
@@ -6,35 +7,72 @@ import SkillsMatrixPage from "./pages/SkillsMatrixPage";
 import SkillsPage from "./pages/SkillsPage";
 
 const { Header, Content, Sider } = Layout;
+const { useBreakpoint } = Grid;
 
 type Page = "matrix" | "employees" | "skills" | "booking";
 
+const MENU_ITEMS = [
+  { key: "matrix", label: "Матрица компетенций" },
+  { key: "employees", label: "Сотрудники" },
+  { key: "skills", label: "Справочник навыков" },
+  { key: "booking", label: "Переговорная" },
+];
+
 export default function App() {
   const [page, setPage] = useState<Page>("matrix");
+  const [navOpen, setNavOpen] = useState(false);
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
+  const goTo = (key: string) => {
+    setPage(key as Page);
+    setNavOpen(false);
+  };
+
+  const menu = (
+    <Menu
+      mode="inline"
+      selectedKeys={[page]}
+      items={MENU_ITEMS}
+      onClick={(e) => goTo(e.key)}
+    />
+  );
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Header style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <span style={{ color: "#fff", fontWeight: 700, fontSize: 18 }}>
-          Портал компетенций
-        </span>
-      </Header>
-      <Layout>
-        <Sider width={220} style={{ background: "#fff" }}>
-          <Menu
-            mode="inline"
-            selectedKeys={[page]}
-            style={{ height: "100%", borderRight: 0, paddingTop: 8 }}
-            onClick={(e) => setPage(e.key as Page)}
-            items={[
-              { key: "matrix", label: "Матрица компетенций" },
-              { key: "employees", label: "Сотрудники" },
-              { key: "skills", label: "Справочник навыков" },
-              { key: "booking", label: "Переговорная" },
-            ]}
+    <Layout className="app-layout">
+      <Header className="app-header">
+        {isMobile && (
+          <Button
+            type="text"
+            icon={<MenuOutlined />}
+            className="app-menu-btn"
+            onClick={() => setNavOpen(true)}
           />
-        </Sider>
-        <Content style={{ padding: 24 }}>
+        )}
+        <span className="app-title">Портал компетенций</span>
+      </Header>
+
+      <Layout>
+        {!isMobile && (
+          <Sider width={220} className="app-sider">
+            {menu}
+          </Sider>
+        )}
+
+        {isMobile && (
+          <Drawer
+            title="Меню"
+            placement="left"
+            open={navOpen}
+            onClose={() => setNavOpen(false)}
+            width={280}
+            className="app-nav-drawer"
+          >
+            {menu}
+          </Drawer>
+        )}
+
+        <Content className="app-content">
           {page === "matrix" && <SkillsMatrixPage />}
           {page === "employees" && <EmployeesPage />}
           {page === "skills" && <SkillsPage />}
