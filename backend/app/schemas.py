@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 class EmployeeBase(BaseModel):
     last_name: str = Field(..., min_length=1, max_length=100)
     first_name: str = Field(..., min_length=1, max_length=100)
+    middle_name: str | None = Field(None, max_length=100)
     position: str = Field(..., min_length=1, max_length=200)
     photo_url: str | None = None
 
@@ -19,6 +20,7 @@ class EmployeeCreate(EmployeeBase):
 class EmployeeUpdate(BaseModel):
     last_name: str | None = Field(None, min_length=1, max_length=100)
     first_name: str | None = Field(None, min_length=1, max_length=100)
+    middle_name: str | None = Field(None, max_length=100)
     position: str | None = Field(None, min_length=1, max_length=200)
     photo_url: str | None = None
 

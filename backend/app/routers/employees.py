@@ -48,6 +48,7 @@ def _build_employee_out(emp: Employee) -> EmployeeOut:
         id=emp.id,
         last_name=emp.last_name,
         first_name=emp.first_name,
+        middle_name=emp.middle_name,
         position=emp.position,
         photo_url=emp.photo_url,
         date_added=emp.date_added,

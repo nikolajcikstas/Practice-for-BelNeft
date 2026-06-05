@@ -19,6 +19,7 @@ import {
 import client from "../api/client";
 import type { Employee, Skill } from "../api/types";
 import EmployeeAvatar from "../components/EmployeeAvatar";
+import { formatFullName } from "../utils/name";
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
@@ -67,6 +68,9 @@ export default function EmployeesPage() {
 
   const handleSave = async () => {
     const values = await form.validateFields();
+    if (!values.middle_name?.trim()) {
+      values.middle_name = null;
+    }
     if (editTarget) {
       await client.patch(`/employees/${editTarget.id}`, values);
       message.success("Сотрудник обновлён");
@@ -80,7 +84,7 @@ export default function EmployeesPage() {
 
   const handleDelete = (emp: Employee) => {
     Modal.confirm({
-      title: `Удалить сотрудника ${emp.last_name} ${emp.first_name}?`,
+      title: `Удалить сотрудника ${formatFullName(emp)}?`,
       okType: "danger",
       onOk: async () => {
         await client.delete(`/employees/${emp.id}`);
@@ -111,7 +115,7 @@ export default function EmployeesPage() {
         <Space>
           <EmployeeAvatar employee={emp} size={40} />
           <span>
-            {emp.last_name} {emp.first_name}
+            {formatFullName(emp)}
           </span>
         </Space>
       ),
@@ -174,8 +178,11 @@ export default function EmployeesPage() {
           <Form.Item name="first_name" label="Имя" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="position" label="Должность" rules={[{ required: true }]}>
-            <Input />
+          <Form.Item name="middle_name" label="Отчество">
+            <Input placeholder="Необязательно" />
+          </Form.Item>
+          <Form.Item name="position" label="Должность" rules={[{ required: true, message: "Укажите должность" }]}>
+            <Input placeholder="Например: Разработчик" />
           </Form.Item>
           <Form.Item name="photo_url" label="URL фото">
             <Input placeholder="https://..." />
@@ -184,7 +191,7 @@ export default function EmployeesPage() {
       </Drawer>
 
       <Modal
-        title={`Назначить навык — ${skillTarget?.last_name} ${skillTarget?.first_name}`}
+        title={`Назначить навык — ${skillTarget ? formatFullName(skillTarget) : ""}`}
         open={skillModalOpen}
         onCancel={() => setSkillModalOpen(false)}
         onOk={handleAssignSkill}

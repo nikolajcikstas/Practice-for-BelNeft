@@ -13,6 +13,7 @@ class Employee(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     last_name: Mapped[str] = mapped_column(String(100), index=True)
     first_name: Mapped[str] = mapped_column(String(100), index=True)
+    middle_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     position: Mapped[str] = mapped_column(String(200))
     photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     date_added: Mapped[date] = mapped_column(Date, default=date.today)

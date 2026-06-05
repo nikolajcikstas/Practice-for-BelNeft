@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.auth import get_current_user_id
 from app.config import settings
 from app.database import get_db
+from app.formatters import format_employee_name
 from app.models.booking import Booking
 from app.schemas import BookingCreate, BookingOut
 
@@ -17,7 +18,9 @@ def _booking_out(booking: Booking) -> BookingOut:
     return BookingOut(
         id=booking.id,
         employee_id=booking.employee_id,
-        employee_name=f"{emp.last_name} {emp.first_name}" if emp else None,
+        employee_name=format_employee_name(
+            emp.last_name, emp.first_name, emp.middle_name
+        ) if emp else None,
         employee_photo_url=emp.photo_url if emp else None,
         topic=booking.topic,
         start_time=booking.start_time,
