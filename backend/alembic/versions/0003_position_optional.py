@@ -1,4 +1,4 @@
-"""position optional
+"""position optional, fix employee names
 
 Revision ID: 0003
 Revises: 0002
@@ -19,7 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.execute("""
         UPDATE employees
-        SET middle_name = position, position = NULL
+        SET middle_name = TRIM(position), position = NULL
         WHERE (middle_name IS NULL OR TRIM(middle_name) = '')
           AND position IS NOT NULL AND TRIM(position) != ''
     """)
@@ -27,10 +27,15 @@ def upgrade() -> None:
         UPDATE employees SET middle_name = '—'
         WHERE middle_name IS NULL OR TRIM(middle_name) = ''
     """)
-    op.alter_column("employees", "middle_name", existing_type=sa.String(100), nullable=False)
+    op.execute("""
+        UPDATE employees SET
+          last_name = TRIM(last_name),
+          first_name = TRIM(first_name),
+          middle_name = TRIM(middle_name),
+          position = NULLIF(TRIM(position), '')
+    """)
     op.alter_column("employees", "position", existing_type=sa.String(200), nullable=True)
 
 
 def downgrade() -> None:
-    op.alter_column("employees", "middle_name", existing_type=sa.String(100), nullable=True)
     op.alter_column("employees", "position", existing_type=sa.String(200), nullable=False)

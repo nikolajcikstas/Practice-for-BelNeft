@@ -10,7 +10,7 @@ export interface Employee {
   id: number;
   last_name: string;
   first_name: string;
-  middle_name: string;
+  middle_name: string | null;
   position: string | null;
   photo_url: string | null;
   date_added: string;

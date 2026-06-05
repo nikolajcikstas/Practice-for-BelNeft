@@ -42,8 +42,13 @@ class SkillShort(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class EmployeeOut(EmployeeBase):
+class EmployeeOut(BaseModel):
     id: int
+    last_name: str
+    first_name: str
+    middle_name: str | None = None
+    position: str | None = None
+    photo_url: str | None = None
     date_added: date
     skills: list[SkillShort] = []
 
