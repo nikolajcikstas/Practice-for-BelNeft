@@ -17,6 +17,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    op.alter_column("employees", "position", existing_type=sa.String(200), nullable=True)
     op.execute("""
         UPDATE employees
         SET middle_name = TRIM(position), position = NULL
@@ -34,7 +35,6 @@ def upgrade() -> None:
           middle_name = TRIM(middle_name),
           position = NULLIF(TRIM(position), '')
     """)
-    op.alter_column("employees", "position", existing_type=sa.String(200), nullable=True)
 
 
 def downgrade() -> None:

@@ -26,6 +26,13 @@ def _apply_schema() -> None:
         if "middle_name" not in col_info:
             _run(conn, "ALTER TABLE employees ADD COLUMN middle_name VARCHAR(100)")
 
+        position_col = col_info.get("position")
+        if position_col and not position_col.get("nullable", True):
+            try:
+                _run(conn, "ALTER TABLE employees ALTER COLUMN position DROP NOT NULL")
+            except Exception:
+                pass
+
         _run(conn, """
             UPDATE employees
             SET middle_name = TRIM(position), position = NULL
@@ -45,12 +52,6 @@ def _apply_schema() -> None:
               middle_name = TRIM(middle_name),
               position = NULLIF(TRIM(position), '')
         """)
-
-    try:
-        with engine.begin() as conn:
-            _run(conn, "ALTER TABLE employees ALTER COLUMN position DROP NOT NULL")
-    except Exception:
-        pass
 
 
 def _sync_alembic() -> None:
