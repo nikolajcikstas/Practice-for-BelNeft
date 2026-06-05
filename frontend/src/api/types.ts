@@ -39,3 +39,12 @@ export interface Booking {
   start_time: string;
   end_time: string;
 }
+
+export interface Report {
+  id: string;
+  title: string;
+  format: string;
+  filename: string;
+  size_bytes: number;
+  generated_at: string;
+}

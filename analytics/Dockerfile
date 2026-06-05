@@ -2,11 +2,10 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY analytics.py .
+COPY backend/ .
 
-VOLUME ["/reports"]
-
-CMD ["python", "analytics.py"]
+ENV REPORTS_DIR=/reports
+CMD ["python", "-m", "app.analytics_service"]

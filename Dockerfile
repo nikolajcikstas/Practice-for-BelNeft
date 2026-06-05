@@ -22,6 +22,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ .
 
+RUN mkdir -p /app/reports
+
 COPY --from=frontend /frontend/dist /var/www/html
 
 COPY hf/nginx.conf /etc/nginx/conf.d/default.conf
@@ -30,6 +32,7 @@ COPY hf/start.sh /start.sh
 RUN chmod +x /start.sh
 
 ENV PORT=7860
+ENV REPORTS_DIR=/app/reports
 EXPOSE 7860
 
 CMD ["/start.sh"]

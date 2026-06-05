@@ -25,5 +25,8 @@ while [ "$attempt" -le "$max_attempts" ]; do
   attempt=$((attempt + 1))
 done
 
+echo "Generating analytics reports..."
+python -m app.analytics_service || echo "WARN: analytics generation failed"
+
 echo "Starting nginx + uvicorn on port 7860..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/app.conf

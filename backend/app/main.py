@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.routers import bookings, employees, skills
+from app.routers import bookings, employees, reports, skills
 
 app = FastAPI(
     title="Портал управления компетенциями и расписанием",
@@ -22,6 +22,7 @@ app.add_middleware(
 app.include_router(employees.router)
 app.include_router(skills.router)
 app.include_router(bookings.router)
+app.include_router(reports.router)
 
 
 @app.get("/health", tags=["health"])

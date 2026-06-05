@@ -2,6 +2,7 @@ import { MenuOutlined } from "@ant-design/icons";
 import { Button, Drawer, Grid, Layout, Menu } from "antd";
 import { useState } from "react";
 import BookingPage from "./pages/BookingPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import SkillsMatrixPage from "./pages/SkillsMatrixPage";
 import SkillsPage from "./pages/SkillsPage";
@@ -9,13 +10,14 @@ import SkillsPage from "./pages/SkillsPage";
 const { Header, Content, Sider } = Layout;
 const { useBreakpoint } = Grid;
 
-type Page = "matrix" | "employees" | "skills" | "booking";
+type Page = "matrix" | "employees" | "skills" | "booking" | "analytics";
 
 const MENU_ITEMS = [
   { key: "matrix", label: "Матрица компетенций" },
   { key: "employees", label: "Сотрудники" },
   { key: "skills", label: "Справочник навыков" },
   { key: "booking", label: "Переговорная" },
+  { key: "analytics", label: "Аналитика" },
 ];
 
 export default function App() {
@@ -77,6 +79,7 @@ export default function App() {
           {page === "employees" && <EmployeesPage />}
           {page === "skills" && <SkillsPage />}
           {page === "booking" && <BookingPage />}
+          {page === "analytics" && <AnalyticsPage />}
         </Content>
       </Layout>
     </Layout>

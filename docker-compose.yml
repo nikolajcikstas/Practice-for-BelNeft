@@ -25,6 +25,9 @@ services:
     environment:
       DATABASE_URL: postgresql://portal:portal@db:5432/portal
       ADMIN_USER_IDS: "1"
+      REPORTS_DIR: /app/reports
+    volumes:
+      - ./reports:/app/reports
     ports:
       - "8000:8000"
 
@@ -37,12 +40,15 @@ services:
       - "3000:80"
 
   analytics:
-    build: ./analytics
+    build:
+      context: .
+      dockerfile: analytics/Dockerfile
     depends_on:
       db:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://portal:portal@db:5432/portal
+      REPORTS_DIR: /reports
     volumes:
       - ./reports:/reports
     profiles:

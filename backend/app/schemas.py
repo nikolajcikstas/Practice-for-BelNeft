@@ -114,3 +114,19 @@ class BookingOut(BaseModel):
     end_time: datetime
 
     model_config = {"from_attributes": True}
+
+
+# --- Reports ---
+
+class ReportOut(BaseModel):
+    id: str
+    title: str
+    format: str
+    filename: str
+    size_bytes: int
+    generated_at: datetime
+
+
+class ReportGenerateOut(BaseModel):
+    format: str
+    items: list[ReportOut]
