@@ -1,25 +1,15 @@
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.ensure_schema import ensure_schema
 from app.routers import bookings, employees, skills
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    ensure_schema()
-    yield
-
 
 app = FastAPI(
     title="Портал управления компетенциями и расписанием",
     version="1.0.0",
     description="Внутренний портал отдела цифровизации строительства",
-    lifespan=lifespan,
 )
 
 app.add_middleware(

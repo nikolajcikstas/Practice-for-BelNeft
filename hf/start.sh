@@ -4,24 +4,21 @@ echo "=== Portal startup ==="
 
 if [ -z "$DATABASE_URL" ]; then
   echo "ERROR: DATABASE_URL is not set."
-  echo "Add it in HF Space -> Settings -> Variables and secrets"
   exit 1
 fi
 
 cd /app
 
-echo "Running database migrations..."
 attempt=1
-max_attempts=10
+max_attempts=12
 while [ "$attempt" -le "$max_attempts" ]; do
-  echo "Migration attempt $attempt/$max_attempts..."
-  if alembic upgrade head; then
-    echo "Migrations applied."
+  echo "DB setup attempt $attempt/$max_attempts..."
+  if python -m app.ensure_schema; then
+    echo "Database ready."
     break
   fi
   if [ "$attempt" -eq "$max_attempts" ]; then
-    echo "ERROR: migrations failed after $max_attempts attempts."
-    echo "Check DATABASE_URL in HF secrets."
+    echo "ERROR: database setup failed."
     exit 1
   fi
   sleep 5
