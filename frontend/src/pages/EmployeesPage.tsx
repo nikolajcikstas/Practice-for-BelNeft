@@ -17,6 +17,7 @@ import {
 import { useEffect, useState } from "react";
 import client from "../api/client";
 import type { Employee, Skill } from "../api/types";
+import EmployeeAvatar from "../components/EmployeeAvatar";
 
 const { Title } = Typography;
 
@@ -101,8 +102,15 @@ export default function EmployeesPage() {
 
   const columns = [
     {
-      title: "Фамилия Имя",
-      render: (_: unknown, emp: Employee) => `${emp.last_name} ${emp.first_name}`,
+      title: "Сотрудник",
+      render: (_: unknown, emp: Employee) => (
+        <Space>
+          <EmployeeAvatar employee={emp} size={40} />
+          <span>
+            {emp.last_name} {emp.first_name}
+          </span>
+        </Space>
+      ),
     },
     { title: "Должность", dataIndex: "position" },
     {

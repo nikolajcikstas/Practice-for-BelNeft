@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Table, Tag, Typography, Spin, Alert } from "antd";
+import { Space, Table, Tag, Typography, Spin, Alert } from "antd";
 import client from "../api/client";
 import type { Employee, Skill } from "../api/types";
+import EmployeeAvatar from "../components/EmployeeAvatar";
 
 const { Title } = Typography;
 
@@ -70,13 +71,16 @@ export default function SkillsMatrixPage() {
       title: "Сотрудник",
       key: "name",
       fixed: "left" as const,
-      width: 180,
+      width: 220,
       render: (_: unknown, emp: Employee) => (
-        <span>
-          {emp.last_name} {emp.first_name}
-          <br />
-          <small style={{ color: "#888" }}>{emp.position}</small>
-        </span>
+        <Space size={8}>
+          <EmployeeAvatar employee={emp} size={32} />
+          <span>
+            {emp.last_name} {emp.first_name}
+            <br />
+            <small style={{ color: "#888" }}>{emp.position}</small>
+          </span>
+        </Space>
       ),
     },
     ...skillColumns,

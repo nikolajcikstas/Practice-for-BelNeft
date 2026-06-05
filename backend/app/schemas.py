@@ -93,6 +93,8 @@ class BookingCreate(BaseModel):
 class BookingOut(BaseModel):
     id: int
     employee_id: int
+    employee_name: str | None = None
+    employee_photo_url: str | None = None
     topic: str
     start_time: datetime
     end_time: datetime

@@ -32,6 +32,8 @@ export interface Skill {
 export interface Booking {
   id: number;
   employee_id: number;
+  employee_name: string | null;
+  employee_photo_url: string | null;
   topic: string;
   start_time: string;
   end_time: string;

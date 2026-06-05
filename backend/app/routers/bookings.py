@@ -1,7 +1,7 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.auth import get_current_user_id
 from app.config import settings
@@ -12,23 +12,43 @@ from app.schemas import BookingCreate, BookingOut
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
 
+def _booking_out(booking: Booking) -> BookingOut:
+    emp = booking.employee
+    return BookingOut(
+        id=booking.id,
+        employee_id=booking.employee_id,
+        employee_name=f"{emp.last_name} {emp.first_name}" if emp else None,
+        employee_photo_url=emp.photo_url if emp else None,
+        topic=booking.topic,
+        start_time=booking.start_time,
+        end_time=booking.end_time,
+    )
+
+
 @router.get("", response_model=list[BookingOut])
 def list_bookings(
-    date: date = Query(..., description="Filter by date, format YYYY-MM-DD"),
+    date: date | None = Query(None, description="Filter by single day YYYY-MM-DD"),
+    from_date: date | None = Query(None, description="Range start YYYY-MM-DD"),
+    to_date: date | None = Query(None, description="Range end YYYY-MM-DD"),
     db: Session = Depends(get_db),
 ):
-    from datetime import datetime, timedelta
-
-    day_start = datetime.combine(date, datetime.min.time())
-    day_end = day_start + timedelta(days=1)
+    if from_date and to_date:
+        day_start = datetime.combine(from_date, datetime.min.time())
+        day_end = datetime.combine(to_date + timedelta(days=1), datetime.min.time())
+    elif date:
+        day_start = datetime.combine(date, datetime.min.time())
+        day_end = day_start + timedelta(days=1)
+    else:
+        raise HTTPException(status_code=400, detail="Provide date or from_date+to_date")
 
     bookings = (
         db.query(Booking)
+        .options(joinedload(Booking.employee))
         .filter(Booking.start_time >= day_start, Booking.start_time < day_end)
         .order_by(Booking.start_time)
         .all()
     )
-    return bookings
+    return [_booking_out(b) for b in bookings]
 
 
 @router.post("", response_model=BookingOut, status_code=201)
@@ -55,7 +75,13 @@ def create_booking(
     db.add(booking)
     db.commit()
     db.refresh(booking)
-    return booking
+    booking = (
+        db.query(Booking)
+        .options(joinedload(Booking.employee))
+        .filter(Booking.id == booking.id)
+        .first()
+    )
+    return _booking_out(booking)
 
 
 @router.delete("/{booking_id}", status_code=204)

@@ -12,3 +12,24 @@ body {
 .rbc-calendar {
   height: 600px;
 }
+
+.rbc-header {
+  font-weight: 600;
+  text-transform: none;
+}
+
+.booking-event {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  height: 100%;
+  padding: 0 2px;
+}
+
+.booking-event-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
