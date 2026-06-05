@@ -10,22 +10,18 @@ fi
 
 cd /app
 
-echo "Initializing database (Neon may need a few seconds to wake up)..."
+echo "Running database migrations..."
 attempt=1
 max_attempts=10
 while [ "$attempt" -le "$max_attempts" ]; do
-  echo "DB init attempt $attempt/$max_attempts..."
+  echo "Migration attempt $attempt/$max_attempts..."
   if alembic upgrade head; then
-    echo "Alembic migrations applied."
-    break
-  fi
-  if python -m app.init_db; then
-    echo "Tables created via create_all."
+    echo "Migrations applied."
     break
   fi
   if [ "$attempt" -eq "$max_attempts" ]; then
-    echo "ERROR: cannot connect to database after $max_attempts attempts."
-    echo "Check DATABASE_URL in HF secrets (copy full string from Neon -> Connection string)."
+    echo "ERROR: migrations failed after $max_attempts attempts."
+    echo "Check DATABASE_URL in HF secrets."
     exit 1
   fi
   sleep 5
