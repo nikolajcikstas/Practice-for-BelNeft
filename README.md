@@ -1,11 +1,4 @@
----
-title: Portal Kompetencij
-emoji: 🏢
-colorFrom: blue
-colorTo: green
-sdk: docker
-pinned: false
----
+
 
 # Портал управления компетенциями и расписанием
 
@@ -50,60 +43,6 @@ docker compose --profile analytics run --rm analytics python analytics.py --pdf
 ```
 
 Отчёты сохраняются в папку `reports/`.
-
----
-
-## Деплой на Neon + Hugging Face Spaces
-
-### Шаг 1 — База данных на Neon
-
-1. Зарегистрироваться на [neon.tech](https://neon.tech)
-2. Создать проект → выбрать регион (Frankfurt ближе всего)
-3. В дашборде скопировать **Connection string**. Выглядит так:
-   ```
-   postgresql://user:password@ep-xxx.eu-central-1.aws.neon.tech/neondb?sslmode=require
-   ```
-4. Строку сохранить — понадобится на следующем шаге
-
-### Шаг 2 — Деплой на Hugging Face Spaces
-
-1. Зарегистрироваться на [huggingface.co](https://huggingface.co)
-2. Перейти: **Spaces → New Space**
-3. Заполнить:
-   - **Space name**: `portal-kompetencij` (или любое)
-   - **SDK**: `Docker`
-   - **Visibility**: `Public` (или Private)
-4. Нажать **Create Space**
-
-#### Подключить GitHub-репозиторий
-
-В настройках Space → **Files** → нажать **"Link to GitHub repository"**
-- Репозиторий: `nikolajcikstas/Practice-for-BelNeft`
-- Ветка: `main`
-- HF автоматически подхватит `Dockerfile` из корня
-
-**Альтернативно** — можно пушить напрямую в HF repo:
-```bash
-git remote add hf https://huggingface.co/spaces/ВАШ_НИК/portal-kompetencij
-git push hf main
-```
-
-#### Добавить переменную окружения DATABASE_URL
-
-В Space → **Settings → Repository secrets → New secret**:
-- Name: `DATABASE_URL`
-- Value: строка из Neon (шаг 1)
-
-После сохранения секрета Space пересоберётся автоматически.
-
-#### Готово
-
-Через 3–5 минут сборки портал будет доступен по адресу:
-```
-https://ВАШ_НИК-portal-kompetencij.hf.space
-```
-
----
 
 ## Структура API
 
