@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, joinedload
 
 from app.auth import get_current_user_id
 from app.config import settings
@@ -20,6 +21,28 @@ from app.schemas import (
 router = APIRouter(prefix="/employees", tags=["employees"])
 
 
+def _load_employee(db: Session, emp_id: int) -> Employee:
+    emp = (
+        db.query(Employee)
+        .options(joinedload(Employee.skills).joinedload(EmployeeSkill.skill))
+        .filter(Employee.id == emp_id)
+        .first()
+    )
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    return emp
+
+
+def _build_skill_short(es: EmployeeSkill) -> SkillShort:
+    return SkillShort(
+        id=es.id,
+        skill_id=es.skill_id,
+        name=es.skill.name,
+        category=es.skill.category,
+        proficiency_level=es.proficiency_level,
+    )
+
+
 @router.get("", response_model=EmployeeList)
 def list_employees(
     page: int = Query(1, ge=1),
@@ -29,11 +52,17 @@ def list_employees(
     total = db.query(Employee).count()
     employees = (
         db.query(Employee)
+        .options(joinedload(Employee.skills).joinedload(EmployeeSkill.skill))
         .offset((page - 1) * size)
         .limit(size)
         .all()
     )
-    return EmployeeList(items=employees, total=total, page=page, size=size)
+    items = []
+    for emp in employees:
+        out = EmployeeOut.model_validate(emp)
+        out.skills = [_build_skill_short(es) for es in emp.skills]
+        items.append(out)
+    return EmployeeList(items=items, total=total, page=page, size=size)
 
 
 @router.post("", response_model=EmployeeOut, status_code=201)
@@ -44,17 +73,23 @@ def create_employee(
 ):
     emp = Employee(**data.model_dump())
     db.add(emp)
-    db.commit()
-    db.refresh(emp)
-    return emp
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Employee with this last name and first name already exists",
+        )
+    return _load_employee(db, emp.id)
 
 
 @router.get("/{emp_id}", response_model=EmployeeOut)
 def get_employee(emp_id: int, db: Session = Depends(get_db)):
-    emp = db.get(Employee, emp_id)
-    if not emp:
-        raise HTTPException(status_code=404, detail="Employee not found")
-    return emp
+    emp = _load_employee(db, emp_id)
+    out = EmployeeOut.model_validate(emp)
+    out.skills = [_build_skill_short(es) for es in emp.skills]
+    return out
 
 
 @router.patch("/{emp_id}", response_model=EmployeeOut)
@@ -64,15 +99,18 @@ def update_employee(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ):
-    emp = db.get(Employee, emp_id)
-    if not emp:
-        raise HTTPException(status_code=404, detail="Employee not found")
-
+    emp = _load_employee(db, emp_id)
     for field, value in data.model_dump(exclude_none=True).items():
         setattr(emp, field, value)
-    db.commit()
-    db.refresh(emp)
-    return emp
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Employee with this last name and first name already exists",
+        )
+    return get_employee(emp_id, db)
 
 
 @router.delete("/{emp_id}", status_code=204)
@@ -104,23 +142,18 @@ def assign_skill(
     if not skill:
         raise HTTPException(status_code=404, detail="Skill not found")
 
-    existing = (
-        db.query(EmployeeSkill)
-        .filter_by(employee_id=emp_id, skill_id=data.skill_id)
-        .first()
-    )
-    if existing:
-        raise HTTPException(status_code=409, detail="Skill already assigned to this employee")
-
     es = EmployeeSkill(
         employee_id=emp_id,
         skill_id=data.skill_id,
         proficiency_level=data.proficiency_level,
     )
     db.add(es)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Skill already assigned to this employee")
     db.refresh(es)
-
     return SkillShort(
         id=es.id,
         skill_id=es.skill_id,
@@ -145,11 +178,9 @@ def update_skill_level(
     )
     if not es:
         raise HTTPException(status_code=404, detail="Skill assignment not found")
-
     es.proficiency_level = data.proficiency_level
     db.commit()
     db.refresh(es)
-
     skill = db.get(Skill, skill_id)
     return SkillShort(
         id=es.id,
@@ -162,23 +193,5 @@ def update_skill_level(
 
 @router.get("/{emp_id}/skills", response_model=list[SkillShort])
 def get_employee_skills(emp_id: int, db: Session = Depends(get_db)):
-    emp = db.get(Employee, emp_id)
-    if not emp:
-        raise HTTPException(status_code=404, detail="Employee not found")
-
-    rows = (
-        db.query(EmployeeSkill, Skill)
-        .join(Skill, EmployeeSkill.skill_id == Skill.id)
-        .filter(EmployeeSkill.employee_id == emp_id)
-        .all()
-    )
-    return [
-        SkillShort(
-            id=es.id,
-            skill_id=es.skill_id,
-            name=skill.name,
-            category=skill.category,
-            proficiency_level=es.proficiency_level,
-        )
-        for es, skill in rows
-    ]
+    emp = _load_employee(db, emp_id)
+    return [_build_skill_short(es) for es in emp.skills]

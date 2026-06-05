@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Скрипт аналитики и отчётности.
-Запуск: python analytics.py
+Запуск: python analytics.py [--pdf]
 """
 
+import argparse
 import os
 from pathlib import Path
 
@@ -11,11 +12,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 from sqlalchemy import create_engine, text
 
+sns.set_theme(style="whitegrid", palette="muted", font_scale=1.1)
+
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://portal:portal@localhost:5432/portal")
-REPORTS_DIR = Path(__file__).parent.parent / "reports"
-REPORTS_DIR.mkdir(exist_ok=True)
+REPORTS_DIR = Path(os.getenv("REPORTS_DIR", str(Path(__file__).parent.parent / "reports")))
+REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_engine():
@@ -51,33 +55,43 @@ def booking_load_by_weekday(engine) -> pd.DataFrame:
     return df
 
 
-def plot_top_skills(df: pd.DataFrame):
-    fig, ax = plt.subplots(figsize=(9, 5))
-    bars = ax.barh(df["skill"], df["total"], color="#4C72B0")
-    ax.bar_label(bars, padding=4)
+def save_figure(fig: plt.Figure, name: str, fmt: str):
+    path = REPORTS_DIR / f"{name}.{fmt}"
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Сохранено: {path}")
+
+
+def plot_top_skills(df: pd.DataFrame, fmt: str):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    palette = sns.color_palette("Blues_d", len(df))
+    bars = ax.barh(df["skill"], df["total"], color=palette)
+    ax.bar_label(bars, padding=4, fontsize=11)
     ax.set_xlabel("Количество назначений")
-    ax.set_title("Топ-5 наиболее востребованных навыков")
+    ax.set_title("Топ-5 наиболее востребованных навыков", fontsize=14, fontweight="bold", pad=12)
     ax.invert_yaxis()
-    plt.tight_layout()
-    path = REPORTS_DIR / "top_skills.png"
-    fig.savefig(path, dpi=150)
-    plt.close(fig)
-    print(f"Сохранено: {path}")
+    sns.despine(left=True, bottom=False)
+    save_figure(fig, "top_skills", fmt)
 
 
-def plot_booking_load(df: pd.DataFrame):
-    fig, ax = plt.subplots(figsize=(9, 5))
-    ax.bar(df["day"], df["avg_hours"], color="#55A868")
+def plot_booking_load(df: pd.DataFrame, fmt: str):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    palette = sns.color_palette("Greens_d", len(df))
+    ax.bar(df["day"], df["avg_hours"], color=palette)
     ax.set_ylabel("Средняя нагрузка (часы)")
-    ax.set_title("Средняя загрузка переговорной по дням недели")
-    plt.tight_layout()
-    path = REPORTS_DIR / "booking_load.png"
-    fig.savefig(path, dpi=150)
-    plt.close(fig)
-    print(f"Сохранено: {path}")
+    ax.set_title("Средняя загрузка переговорной по дням недели", fontsize=14, fontweight="bold", pad=12)
+    for i, (day, val) in enumerate(zip(df["day"], df["avg_hours"])):
+        ax.text(i, val + 0.02, str(val), ha="center", va="bottom", fontsize=10)
+    sns.despine()
+    save_figure(fig, "booking_load", fmt)
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Аналитика портала компетенций")
+    parser.add_argument("--pdf", action="store_true", help="Сохранить в PDF вместо PNG")
+    args = parser.parse_args()
+    fmt = "pdf" if args.pdf else "png"
+
     engine = get_engine()
 
     print("Подключение к БД...")
@@ -85,17 +99,25 @@ def main():
         conn.execute(text("SELECT 1"))
     print("OK")
 
+    print(f"\nФормат вывода: {fmt.upper()}")
+
     print("\nТоп-5 навыков:")
     df_skills = top_skills(engine)
-    print(df_skills.to_string(index=False))
-    plot_top_skills(df_skills)
+    if df_skills.empty:
+        print("  Нет данных")
+    else:
+        print(df_skills.to_string(index=False))
+        plot_top_skills(df_skills, fmt)
 
     print("\nЗагрузка переговорной по дням недели:")
     df_load = booking_load_by_weekday(engine)
-    print(df_load[["day", "avg_hours"]].to_string(index=False))
-    plot_booking_load(df_load)
+    if df_load.empty:
+        print("  Нет данных")
+    else:
+        print(df_load[["day", "avg_hours"]].to_string(index=False))
+        plot_booking_load(df_load, fmt)
 
-    print("\nГотово. Отчёты сохранены в папку /reports")
+    print(f"\nГотово. Отчёты в папке: {REPORTS_DIR}")
 
 
 if __name__ == "__main__":

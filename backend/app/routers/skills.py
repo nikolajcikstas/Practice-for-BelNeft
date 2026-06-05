@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user_id
@@ -20,11 +21,25 @@ def create_skill(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ):
-    existing = db.query(Skill).filter_by(name=data.name).first()
-    if existing:
-        raise HTTPException(status_code=409, detail="Skill with this name already exists")
     skill = Skill(**data.model_dump())
     db.add(skill)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Skill with this name already exists")
     db.refresh(skill)
     return skill
+
+
+@router.delete("/{skill_id}", status_code=204)
+def delete_skill(
+    skill_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user_id),
+):
+    skill = db.get(Skill, skill_id)
+    if not skill:
+        raise HTTPException(status_code=404, detail="Skill not found")
+    db.delete(skill)
+    db.commit()

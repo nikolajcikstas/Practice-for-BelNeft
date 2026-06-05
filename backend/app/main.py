@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.routers import bookings, employees, skills
 
@@ -24,3 +27,8 @@ app.include_router(bookings.router)
 @app.get("/health", tags=["health"])
 def health():
     return {"status": "ok"}
+
+
+static_dir = Path(__file__).parent.parent / "static"
+if static_dir.exists():
+    app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
