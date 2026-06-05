@@ -1,5 +1,5 @@
 import { Avatar } from "antd";
-import type { Employee } from "./types";
+import type { Employee } from "../api/types";
 
 type Props = {
   employee: Pick<Employee, "first_name" | "last_name" | "photo_url">;
